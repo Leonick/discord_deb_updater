@@ -18,16 +18,23 @@ if [ "$(id -u)" != 0 ]; then
     exit 1
 fi
 
-# Update package list and install wget
-# Actualizar lista de paquetes e instalar wget
-echo "Checking required packages..."
-apt update -y
-apt install wget -y
+# Make sure either wget or wcurl is installed
+# Certifique-se de que o wget ou o wcurl está instalado
+if command -v wget &> /dev/null; then
+    DL_CMD="wget -q --show-progress"
+elif command -v wcurl &> /dev/null; then
+    DL_CMD="wcurl"
+else
+    echo "Installing wget to handle downloads..."
+    apt update -y
+    apt install wget -y
+    DL_CMD="wget -q --show progress"
+fi
 
 # Download Discord .deb package
 # Descargar el paquete .deb de Discord
 echo "Downloading Discord..."
-wget -O "./discord_update.deb" "https://discord.com/api/download?platform=linux"
+eval $DL_CMD -O "./discord_update.deb" "https://discord.com/api/download?platform=linux"
 
 DEB_FILE="./discord_update.deb"
 
@@ -56,7 +63,7 @@ fi
 
 # Clean up the downloaded file
 # Limpiar el archivo descargado
-echo "Remove temporary files..."
+echo "Removing temporary files..."
 rm "$DEB_FILE"
 
 # WARNING: Comment with # the last line if you want don't delete this script
